@@ -1,4 +1,4 @@
-import { createLogger, defineConfig, loadEnv } from 'vite';
+import { createLogger, defineConfig, loadEnv, UserConfig } from 'vite';
 import chalk from 'chalk';
 
 export default defineConfig(({ command, mode }) => {
@@ -10,9 +10,10 @@ export default defineConfig(({ command, mode }) => {
 
     const env = loadEnv(mode, `${process.cwd()}/config`, 'VAR_');
 
-    const commonConfig = {
+    const commonConfig: UserConfig = {
         root: `${process.cwd()}/src`,
         publicDir: `${process.cwd()}/assets`,
+        base: './',
         define: {
             '__VERSION__': JSON.stringify(version),
             '__DEBUG__': JSON.stringify(env.VAR_DEBUG),
