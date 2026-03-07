@@ -1,12 +1,12 @@
+import { PlanetSimulator } from './components/PlanetSimulator';
 import './main.scss';
-
-const loadContent = () => {
-    return 'Hello, World';
-};
 
 const root = document.querySelector('#app');
 if (root != null) {
-    // eslint-disable-next-line no-console
-    console.log(`APP Version: ${__VERSION__}`);
-    root.textContent = loadContent();
+    const canvasEl = document.createElement('canvas');
+    canvasEl.classList.add('simulation');
+    root.appendChild(canvasEl);
+    
+    const simulation = new PlanetSimulator(canvasEl);
+    simulation.run();
 }

@@ -1,4 +1,10 @@
-#app {
-    font-size: 120px;
-    text-align: center;
+* {
+    margin: 0;
+    padding: 0;
+}
+
+.simulation {
+    position: absolute;
+    width: 100%;
+    height: 100%;
 }
