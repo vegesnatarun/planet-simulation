@@ -35,6 +35,13 @@ export default defineConfig(({ command, mode }) => {
                 outDir: `${process.cwd()}/dist`,
                 sourcemap: true,
                 license: true,
+                rollupOptions: {
+                    output: {
+                        manualChunks: {
+                            three: ['three'],
+                        }
+                    }
+                }
             },
         };
     }
