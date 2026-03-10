@@ -1,6 +1,9 @@
-import { BoxGeometry, Mesh, MeshNormalMaterial, PerspectiveCamera, Scene, Timer, WebGLRenderer } from 'three';
+import { Color, Mesh, PerspectiveCamera, Scene, Timer, WebGLRenderer } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import Stats from 'stats.js';
+import { Group } from 'three';
+import { SphereGeometry } from 'three';
+import { MeshBasicMaterial } from 'three';
 
 export class PlanetSimulator {
     private renderer: WebGLRenderer;
@@ -11,8 +14,37 @@ export class PlanetSimulator {
     private fpsCounter: Stats;
     private timer: Timer;
 
-    // Temp Code
-    private box: Mesh;
+    private moonOrbit: Group;
+    private earthOrbit: Group;
+
+    private createSolarSystem() {
+        const moon = new Mesh(
+            new SphereGeometry(1, 32, 32),
+            new MeshBasicMaterial({ color: new Color(225, 225, 225) }),
+        );
+
+        const earth = new Mesh(
+            new SphereGeometry(10, 32, 32),
+            new MeshBasicMaterial({ color: new Color(0, 0, 225) }),
+        );
+
+        const sun = new Mesh(
+            new SphereGeometry(40, 32, 32),
+            new MeshBasicMaterial({ color: new Color(225, 225, 0) }),
+        );
+        this.earthOrbit = new Group();
+
+        moon.position.set(15, 0, 0);
+        this.moonOrbit.add(moon);
+        this.moonOrbit.rotateX(Math.PI / 4);
+
+        earth.position.set(100, 0, 0);
+        this.moonOrbit.position.copy(earth.position);
+        this.earthOrbit.add(this.moonOrbit);
+        this.earthOrbit.add(earth);
+        this.scene.add(this.earthOrbit);
+        this.scene.add(sun);
+    }
 
     private setSize() {
         const dpr = window.devicePixelRatio;
@@ -51,13 +83,16 @@ export class PlanetSimulator {
 
         this.scene = new Scene();
 
-        // Temp Code
-        this.box = new Mesh(
-            new BoxGeometry(50, 50, 50),
-            new MeshNormalMaterial()
-        );
-        this.scene.add(this.box);
-        this.controls.autoRotate = true;
+        this.moonOrbit = new Group();
+        this.earthOrbit = new Group();
+        this.createSolarSystem();
+    }
+
+    private update(deltaTime: number) {
+        this.controls.update(deltaTime);
+
+        this.earthOrbit.rotateY(deltaTime * 0.5);
+        this.moonOrbit.rotateY(deltaTime * 0.5);
     }
 
     run() {
@@ -66,7 +101,7 @@ export class PlanetSimulator {
 
             this.timer.update(time);
             const deltaTime = this.timer.getDelta();
-            this.controls.update(deltaTime);
+            this.update(deltaTime);
 
             this.renderer.render(this.scene, this.camera);
             this.fpsCounter.end();
