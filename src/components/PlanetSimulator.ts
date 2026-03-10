@@ -1,9 +1,11 @@
-import { Color, Mesh, PerspectiveCamera, Scene, Timer, WebGLRenderer } from 'three';
+import { Color, Mesh, Object3D, PerspectiveCamera, Scene, Timer, WebGLRenderer } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import Stats from 'stats.js';
 import { Group } from 'three';
 import { SphereGeometry } from 'three';
 import { MeshBasicMaterial } from 'three';
+import { AstronomicalEntity } from '../types/AstronomicalEntity';
+import solarSystem from '../data/solar-system.json';
 
 export class PlanetSimulator {
     private renderer: WebGLRenderer;
@@ -14,36 +16,28 @@ export class PlanetSimulator {
     private fpsCounter: Stats;
     private timer: Timer;
 
-    private moonOrbit: Group;
-    private earthOrbit: Group;
+    private orbitSpeeds: Map<Object3D, number> = new Map();
 
-    private createSolarSystem() {
-        const moon = new Mesh(
-            new SphereGeometry(1, 32, 32),
-            new MeshBasicMaterial({ color: new Color(225, 225, 225) }),
-        );
-
-        const earth = new Mesh(
-            new SphereGeometry(10, 32, 32),
-            new MeshBasicMaterial({ color: new Color(0, 0, 225) }),
-        );
-
-        const sun = new Mesh(
-            new SphereGeometry(40, 32, 32),
-            new MeshBasicMaterial({ color: new Color(225, 225, 0) }),
-        );
-        this.earthOrbit = new Group();
-
-        moon.position.set(15, 0, 0);
-        this.moonOrbit.add(moon);
-        this.moonOrbit.rotateX(Math.PI / 4);
-
-        earth.position.set(100, 0, 0);
-        this.moonOrbit.position.copy(earth.position);
-        this.earthOrbit.add(this.moonOrbit);
-        this.earthOrbit.add(earth);
-        this.scene.add(this.earthOrbit);
-        this.scene.add(sun);
+    private createSolarSystem(baseEntity: AstronomicalEntity) {
+        const addObject = (entity: AstronomicalEntity, parent: Object3D, distance: number) => {
+            const object = new Mesh(
+                new SphereGeometry(entity.size, 32, 32),
+                new MeshBasicMaterial({ color: new Color(...entity.color) })
+            );
+            if (entity.orbits != null && entity.orbits.length > 0) {
+                entity.orbits.forEach((orbit) => {
+                    const orbitEntity = new Group();
+                    orbitEntity.rotateX(orbit.rotation);
+                    addObject(orbit.object, orbitEntity, orbit.distance);
+                    this.orbitSpeeds.set(orbitEntity, orbit.speed);
+                    object.add(orbitEntity);
+                });
+            }
+            object.name = entity.name;
+            object.position.set(distance, 0, 0);
+            parent.add(object);
+        };
+        addObject(baseEntity, this.scene, 0);
     }
 
     private setSize() {
@@ -83,16 +77,15 @@ export class PlanetSimulator {
 
         this.scene = new Scene();
 
-        this.moonOrbit = new Group();
-        this.earthOrbit = new Group();
-        this.createSolarSystem();
+        this.createSolarSystem(solarSystem as AstronomicalEntity);
     }
 
     private update(deltaTime: number) {
         this.controls.update(deltaTime);
 
-        this.earthOrbit.rotateY(deltaTime * 0.5);
-        this.moonOrbit.rotateY(deltaTime * 0.5);
+        this.orbitSpeeds.forEach((speed, orbit) => {
+            orbit.rotateY(deltaTime * speed);
+        });
     }
 
     run() {

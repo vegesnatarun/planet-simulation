@@ -1,0 +1,1 @@
+{"id":"sun","name":"Sun","size":40,"color":[255,255,0],"orbits":[{"distance":100,"rotation":0,"speed":0.5,"object":{"id":"earth","name":"Earth","size":10,"color":[0,0,255],"orbits":[{"distance":15,"rotation":0.7853981633974483,"speed":0.5,"object":{"id":"moon","name":"moon","size":1,"color":[255,255,255]}}]}}]}
